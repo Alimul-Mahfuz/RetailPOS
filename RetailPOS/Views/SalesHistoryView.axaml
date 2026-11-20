@@ -1,0 +1,146 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="using:RetailPOS.ViewModels"
+             xmlns:m="using:RetailPOS.Models"
+             mc:Ignorable="d" d:DesignWidth="1100" d:DesignHeight="750"
+             x:Class="RetailPOS.Views.SalesHistoryView"
+             x:DataType="vm:SalesHistoryViewModel">
+
+    <Grid Margin="10">
+        <Border Background="#FFFFFF" CornerRadius="4" BorderBrush="#90AFC9" BorderThickness="1">
+            <Grid RowDefinitions="Auto,Auto,*">
+
+                <!-- Header / Analytics Dashboard (Windows 7 Style Cards) -->
+                <Border Grid.Row="0" Background="#E2EEF8" BorderBrush="#B2CCE0" BorderThickness="0,0,0,1" Padding="12,10">
+                    <Grid ColumnDefinitions="*,*,*,*">
+                        <!-- Revenue Today -->
+                        <Border Grid.Column="0" Background="#FFFFFF" BorderBrush="#BFD7EB" BorderThickness="1" CornerRadius="4" Padding="12,8" Margin="0,0,6,0">
+                            <StackPanel>
+                                <TextBlock Text="Today's Total Sales" FontSize="11" Foreground="#446688" />
+                                <TextBlock Text="{Binding TodayRevenue, StringFormat='${0:F2}'}" FontSize="22" FontWeight="ExtraBold" Foreground="#126827" />
+                            </StackPanel>
+                        </Border>
+
+                        <!-- Orders Count -->
+                        <Border Grid.Column="1" Background="#FFFFFF" BorderBrush="#BFD7EB" BorderThickness="1" CornerRadius="4" Padding="12,8" Margin="3,0,3,0">
+                            <StackPanel>
+                                <TextBlock Text="Transactions Completed" FontSize="11" Foreground="#446688" />
+                                <TextBlock Text="{Binding TodayOrdersCount}" FontSize="22" FontWeight="Bold" Foreground="#1A4A7A" />
+                            </StackPanel>
+                        </Border>
+
+                        <!-- Items Sold -->
+                        <Border Grid.Column="2" Background="#FFFFFF" BorderBrush="#BFD7EB" BorderThickness="1" CornerRadius="4" Padding="12,8" Margin="3,0,3,0">
+                            <StackPanel>
+                                <TextBlock Text="Total Grocery Items Sold" FontSize="11" Foreground="#446688" />
+                                <TextBlock Text="{Binding TodayItemsSold}" FontSize="22" FontWeight="Bold" Foreground="#32506D" />
+                            </StackPanel>
+                        </Border>
+
+                        <!-- Cash vs Card Split -->
+                        <Border Grid.Column="3" Background="#FFFFFF" BorderBrush="#BFD7EB" BorderThickness="1" CornerRadius="4" Padding="12,8" Margin="6,0,0,0">
+                            <StackPanel>
+                                <TextBlock Text="Cash / Card Breakdown" FontSize="11" Foreground="#446688" />
+                                <Grid ColumnDefinitions="*,*">
+                                    <TextBlock Grid.Column="0" Text="{Binding TotalCashSales, StringFormat='Cash: ${0:F0}'}" FontSize="12" FontWeight="Bold" Foreground="#2E7D32" />
+                                    <TextBlock Grid.Column="1" Text="{Binding TotalCardSales, StringFormat='Card: ${0:F0}'}" FontSize="12" FontWeight="Bold" Foreground="#1565C0" TextAlignment="Right" />
+                                </Grid>
+                            </StackPanel>
+                        </Border>
+                    </Grid>
+                </Border>
+
+                <!-- Search & Filter Bar -->
+                <Border Grid.Row="1" Background="#EDF4FA" BorderBrush="#C9DCEB" BorderThickness="0,0,0,1" Padding="12,8">
+                    <Grid ColumnDefinitions="*,Auto">
+                        <TextBox Classes="win7-input" Grid.Column="0" Width="300" HorizontalAlignment="Left"
+                                 Text="{Binding SearchQuery}"
+                                 PlaceholderText="🔍 Filter by Receipt #, Cashier, or Payment..." Height="30" VerticalContentAlignment="Center" />
+
+                        <Button Classes="win7-button" Grid.Column="1"
+                                Command="{Binding RefreshSales}"
+                                Content="⟳ Refresh Sales Log" Height="30" />
+                    </Grid>
+                </Border>
+
+                <!-- Main Content Split: Sales List (Left) & Receipt Viewer (Right) -->
+                <Grid Grid.Row="2" ColumnDefinitions="*,440">
+
+                    <!-- Left: Sales Records Table -->
+                    <Grid Grid.Column="0" RowDefinitions="Auto,*" Margin="0,0,1,0">
+                        <!-- Table Header -->
+                        <Border Grid.Row="0" Background="#D8E8F5" BorderBrush="#AEC9E0" BorderThickness="0,0,1,1" Padding="10,8">
+                            <Grid ColumnDefinitions="140,130,120,60,80,*">
+                                <TextBlock Grid.Column="0" Text="Receipt #" FontWeight="Bold" Foreground="#1E446B" />
+                                <TextBlock Grid.Column="1" Text="Date &amp; Time" FontWeight="Bold" Foreground="#1E446B" />
+                                <TextBlock Grid.Column="2" Text="Cashier" FontWeight="Bold" Foreground="#1E446B" />
+                                <TextBlock Grid.Column="3" Text="Items" FontWeight="Bold" Foreground="#1E446B" TextAlignment="Center" />
+                                <TextBlock Grid.Column="4" Text="Method" FontWeight="Bold" Foreground="#1E446B" />
+                                <TextBlock Grid.Column="5" Text="Total" FontWeight="Bold" Foreground="#1E446B" TextAlignment="Right" />
+                            </Grid>
+                        </Border>
+
+                        <!-- Table Rows -->
+                        <ListBox Grid.Row="1" ItemsSource="{Binding Sales}" SelectedItem="{Binding SelectedSale}" BorderThickness="0,0,1,0">
+                            <ListBox.ItemTemplate>
+                                <DataTemplate DataType="m:SaleRecord">
+                                    <Grid ColumnDefinitions="140,130,120,60,80,*" VerticalAlignment="Center">
+                                        <TextBlock Grid.Column="0" Text="{Binding ReceiptNumber}" FontWeight="Bold" Foreground="#1C538C" />
+                                        <TextBlock Grid.Column="1" Text="{Binding FormattedDate}" Foreground="#556677" FontSize="11" VerticalAlignment="Center" />
+                                        <TextBlock Grid.Column="2" Text="{Binding CashierName}" Foreground="#334455" VerticalAlignment="Center" />
+                                        <TextBlock Grid.Column="3" Text="{Binding TotalItemsCount}" FontWeight="SemiBold" VerticalAlignment="Center" TextAlignment="Center" />
+                                        <TextBlock Grid.Column="4" Text="{Binding PaymentMethod}" Foreground="#667788" VerticalAlignment="Center" />
+                                        <TextBlock Grid.Column="5" Text="{Binding FormattedTotal}" FontWeight="ExtraBold" Foreground="#126827" TextAlignment="Right" VerticalAlignment="Center" />
+                                    </Grid>
+                                </DataTemplate>
+                            </ListBox.ItemTemplate>
+                        </ListBox>
+                    </Grid>
+
+                    <!-- Right: Receipt Viewer Pane -->
+                    <Border Grid.Column="1" Background="#F4F8FC" Padding="12">
+                        <Grid RowDefinitions="Auto,*,Auto,Auto">
+
+                            <Grid Grid.Row="0" ColumnDefinitions="*,Auto" Margin="0,0,0,8">
+                                <TextBlock Text="📜 Receipt Archive Preview" FontWeight="Bold" FontSize="14" Foreground="#1A3F63" VerticalAlignment="Center" />
+                                <TextBlock Grid.Column="1" Text="{Binding SelectedSale.ReceiptNumber, FallbackValue=''}" FontWeight="Bold" Foreground="#2A6CA3" VerticalAlignment="Center" />
+                            </Grid>
+
+                            <!-- Monospace Receipt Box -->
+                            <Border Grid.Row="1" Background="#FFFDF7" BorderBrush="#DCD6C8" BorderThickness="1" CornerRadius="4" Padding="10">
+                                <ScrollViewer VerticalScrollBarVisibility="Auto">
+                                    <TextBlock Text="{Binding SelectedSaleReceiptText}"
+                                               FontFamily="Consolas, Courier New, monospace"
+                                               FontSize="11.5"
+                                               Foreground="#222222"
+                                               LineHeight="16" />
+                                </ScrollViewer>
+                            </Border>
+
+                            <!-- Notification Message -->
+                            <TextBlock Grid.Row="2" Text="{Binding ActionNotification}"
+                                       FontSize="11" Foreground="#1A6832" FontWeight="SemiBold"
+                                       Margin="0,6,0,6" TextWrapping="Wrap" />
+
+                            <!-- Receipt Actions -->
+                            <Grid Grid.Row="3" ColumnDefinitions="*,*">
+                                <Button Classes="win7-button-primary" Grid.Column="0"
+                                        Command="{Binding ReprintReceiptCommand}"
+                                        Content="🖨️ Re-Print Receipt" Margin="0,0,4,0"
+                                        HorizontalContentAlignment="Center" Height="36" />
+                                <Button Classes="win7-button" Grid.Column="1"
+                                        Command="{Binding SaveReceiptFileCommand}"
+                                        Content="💾 Save To File" Margin="4,0,0,0"
+                                        HorizontalContentAlignment="Center" Height="36" />
+                            </Grid>
+
+                        </Grid>
+                    </Border>
+
+                </Grid>
+            </Grid>
+        </Border>
+    </Grid>
+</UserControl>

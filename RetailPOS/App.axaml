@@ -1,0 +1,135 @@
+<Application xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             x:Class="RetailPOS.App"
+             xmlns:local="using:RetailPOS"
+             RequestedThemeVariant="Light">
+
+    <Application.DataTemplates>
+        <local:ViewLocator />
+    </Application.DataTemplates>
+
+    <Application.Styles>
+        <FluentTheme />
+
+        <!-- Windows 7 Aero Global Resources & Controls -->
+        <Style Selector="Window">
+            <Setter Property="FontFamily" Value="Segoe UI, Inter, Arial, sans-serif" />
+            <Setter Property="FontSize" Value="13" />
+        </Style>
+
+        <!-- Win7 Aero Command Button -->
+        <Style Selector="Button.win7-button">
+            <Setter Property="Background">
+                <Setter.Value>
+                    <LinearGradientBrush StartPoint="0%,0%" EndPoint="0%,100%">
+                        <GradientStop Color="#FFFFFF" Offset="0.0" />
+                        <GradientStop Color="#F2F6F9" Offset="0.4" />
+                        <GradientStop Color="#DDE8F2" Offset="0.5" />
+                        <GradientStop Color="#C7DCED" Offset="1.0" />
+                    </LinearGradientBrush>
+                </Setter.Value>
+            </Setter>
+            <Setter Property="BorderBrush" Value="#709CB8" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="CornerRadius" Value="3" />
+            <Setter Property="Foreground" Value="#1A2D42" />
+            <Setter Property="FontWeight" Value="SemiBold" />
+            <Setter Property="Padding" Value="12,6" />
+            <Setter Property="Cursor" Value="Hand" />
+        </Style>
+        <Style Selector="Button.win7-button:pointerover">
+            <Setter Property="Background">
+                <Setter.Value>
+                    <LinearGradientBrush StartPoint="0%,0%" EndPoint="0%,100%">
+                        <GradientStop Color="#FFFFFF" Offset="0.0" />
+                        <GradientStop Color="#E8F4FC" Offset="0.4" />
+                        <GradientStop Color="#BBE0F7" Offset="0.5" />
+                        <GradientStop Color="#9FD3F4" Offset="1.0" />
+                    </LinearGradientBrush>
+                </Setter.Value>
+            </Setter>
+            <Setter Property="BorderBrush" Value="#3C7FB1" />
+        </Style>
+        <Style Selector="Button.win7-button:pressed">
+            <Setter Property="Background">
+                <Setter.Value>
+                    <LinearGradientBrush StartPoint="0%,0%" EndPoint="0%,100%">
+                        <GradientStop Color="#93C8ED" Offset="0.0" />
+                        <GradientStop Color="#B2D8F2" Offset="0.5" />
+                        <GradientStop Color="#80BBE3" Offset="1.0" />
+                    </LinearGradientBrush>
+                </Setter.Value>
+            </Setter>
+            <Setter Property="BorderBrush" Value="#2A5F88" />
+        </Style>
+
+        <!-- Win7 Aero Success / Checkout Button -->
+        <Style Selector="Button.win7-button-primary">
+            <Setter Property="Background">
+                <Setter.Value>
+                    <LinearGradientBrush StartPoint="0%,0%" EndPoint="0%,100%">
+                        <GradientStop Color="#EBF8E6" Offset="0.0" />
+                        <GradientStop Color="#C1ECB5" Offset="0.4" />
+                        <GradientStop Color="#8DD87B" Offset="0.5" />
+                        <GradientStop Color="#64BD4E" Offset="1.0" />
+                    </LinearGradientBrush>
+                </Setter.Value>
+            </Setter>
+            <Setter Property="BorderBrush" Value="#3D8B2C" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="CornerRadius" Value="3" />
+            <Setter Property="Foreground" Value="#0F3807" />
+            <Setter Property="FontWeight" Value="Bold" />
+            <Setter Property="Padding" Value="14,8" />
+            <Setter Property="Cursor" Value="Hand" />
+        </Style>
+        <Style Selector="Button.win7-button-primary:pointerover">
+            <Setter Property="Background">
+                <Setter.Value>
+                    <LinearGradientBrush StartPoint="0%,0%" EndPoint="0%,100%">
+                        <GradientStop Color="#FFFFFF" Offset="0.0" />
+                        <GradientStop Color="#D5F4CC" Offset="0.4" />
+                        <GradientStop Color="#A2E292" Offset="0.5" />
+                        <GradientStop Color="#78CB63" Offset="1.0" />
+                    </LinearGradientBrush>
+                </Setter.Value>
+            </Setter>
+            <Setter Property="BorderBrush" Value="#2F7520" />
+        </Style>
+
+        <!-- Win7 Aero Danger / Delete Button -->
+        <Style Selector="Button.win7-button-danger">
+            <Setter Property="Background">
+                <Setter.Value>
+                    <LinearGradientBrush StartPoint="0%,0%" EndPoint="0%,100%">
+                        <GradientStop Color="#FCEEEE" Offset="0.0" />
+                        <GradientStop Color="#F8C7C7" Offset="0.4" />
+                        <GradientStop Color="#EE8F8F" Offset="0.5" />
+                        <GradientStop Color="#E26161" Offset="1.0" />
+                    </LinearGradientBrush>
+                </Setter.Value>
+            </Setter>
+            <Setter Property="BorderBrush" Value="#B43838" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="CornerRadius" Value="3" />
+            <Setter Property="Foreground" Value="#5C0D0D" />
+            <Setter Property="FontWeight" Value="SemiBold" />
+            <Setter Property="Padding" Value="10,5" />
+            <Setter Property="Cursor" Value="Hand" />
+        </Style>
+
+        <!-- Win7 Aero Input Box -->
+        <Style Selector="TextBox.win7-input">
+            <Setter Property="Background" Value="#FFFFFF" />
+            <Setter Property="BorderBrush" Value="#7F9DB9" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="CornerRadius" Value="2" />
+            <Setter Property="Padding" Value="6,4" />
+            <Setter Property="FontSize" Value="13" />
+        </Style>
+        <Style Selector="TextBox.win7-input:focus">
+            <Setter Property="BorderBrush" Value="#3D9CDA" />
+        </Style>
+
+    </Application.Styles>
+</Application>

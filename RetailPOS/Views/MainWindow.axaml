@@ -1,0 +1,220 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="using:RetailPOS.ViewModels"
+        xmlns:views="using:RetailPOS.Views"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        mc:Ignorable="d" d:DesignWidth="1250" d:DesignHeight="850"
+        x:Class="RetailPOS.Views.MainWindow"
+        x:DataType="vm:MainViewModel"
+        Icon="/Assets/avalonia-logo.ico"
+        Title="RetailPOS - Windows 7 Edition (Groceries, Inventory, Loyalty &amp; Master Data)"
+        MinWidth="1000" MinHeight="680"
+        WindowStartupLocation="CenterScreen">
+
+    <!-- Overall Window Aero Frame Background -->
+    <Grid Background="#D6E5F3">
+
+        <!-- SCREEN 1: VERSATILE LOGIN / LOCK SCREEN (Visible when logged out) -->
+        <Panel IsVisible="{Binding IsLoggedOut}">
+            <views:LoginView DataContext="{Binding LoginVM}" />
+        </Panel>
+
+        <!-- SCREEN 2: MAIN POS APPLICATION SHELL (Visible when authenticated) -->
+        <Grid RowDefinitions="Auto,Auto,*,Auto"
+              IsVisible="{Binding !IsLoggedOut}">
+
+            <!-- 1. Windows 7 Aero Glass Header / Title Bar -->
+            <Border Grid.Row="0" Height="54" BorderBrush="#1B496E" BorderThickness="0,0,0,1">
+                <Border.Background>
+                    <LinearGradientBrush StartPoint="0%,0%" EndPoint="0%,100%">
+                        <GradientStop Color="#5396C7" Offset="0.0" />
+                        <GradientStop Color="#2C6997" Offset="0.4" />
+                        <GradientStop Color="#1C4F77" Offset="0.5" />
+                        <GradientStop Color="#255D88" Offset="1.0" />
+                    </LinearGradientBrush>
+                </Border.Background>
+                <Grid ColumnDefinitions="Auto,*,Auto" Margin="14,0">
+
+                    <!-- Store Branding & Icon -->
+                    <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="10" VerticalAlignment="Center">
+                        <Border Width="34" Height="34" CornerRadius="17" Background="#E8F4FC" BorderBrush="#FFFFFF" BorderThickness="1.5">
+                            <TextBlock Text="🛒" FontSize="18" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                        </Border>
+                        <StackPanel VerticalAlignment="Center">
+                            <TextBlock Text="GREEN VALLEY GROCERY &amp; MART"
+                                       FontSize="15" FontWeight="Bold" Foreground="#FFFFFF" />
+                            <TextBlock Text="RetailPOS Windows 7 Station #01 • Point of Sale &amp; Management"
+                                       FontSize="11" Foreground="#C5E2F7" />
+                        </StackPanel>
+                    </StackPanel>
+
+                    <!-- Center Quick Stats or Notice -->
+                    <Border Grid.Column="1" HorizontalAlignment="Center" VerticalAlignment="Center"
+                            Background="#33000000" CornerRadius="12" Padding="12,3">
+                        <TextBlock Text="🟢 Station Status: Active Online" FontSize="11" Foreground="#B6F2C7" FontWeight="SemiBold" />
+                    </Border>
+
+                    <!-- Active Cashier & User Actions -->
+                    <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="10" VerticalAlignment="Center">
+                        <!-- User Card -->
+                        <Border Background="#20FFFFFF" BorderBrush="#77B5E3" BorderThickness="1" CornerRadius="4" Padding="10,4">
+                            <StackPanel Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
+                                <TextBlock Text="👤" FontSize="14" Foreground="#FFFFFF" VerticalAlignment="Center" />
+                                <TextBlock Text="{Binding CashierDisplayName}" FontWeight="Bold" FontSize="12" Foreground="#FFFFFF" VerticalAlignment="Center" />
+                            </StackPanel>
+                        </Border>
+
+                        <!-- Lock / Switch User -->
+                        <Button Classes="win7-button"
+                                Command="{Binding LogoutCommand}"
+                                Content="🔒 Switch User / Lock"
+                                Height="30" FontSize="11" />
+                    </StackPanel>
+                </Grid>
+            </Border>
+
+            <!-- 2. Windows 7 Ribbon / Tab Navigation Bar -->
+            <Border Grid.Row="1" Background="#E5EEF6" BorderBrush="#AFC7DA" BorderThickness="0,0,0,1" Padding="12,6,12,0">
+                <Grid ColumnDefinitions="Auto,*">
+
+                    <!-- Navigation Tabs -->
+                    <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="4">
+
+                        <!-- Tab 1: Register (Checkout) -->
+                        <Button Classes="win7-button"
+                                Command="{Binding NavigateCommand}" CommandParameter="Register"
+                                Height="34" Padding="12,4" CornerRadius="4,4,0,0" Margin="0,0,0,-1">
+                            <StackPanel Orientation="Horizontal" Spacing="6">
+                                <TextBlock Text="🛒" FontSize="13" />
+                                <TextBlock Text="POS Register" FontWeight="Bold" FontSize="12" />
+                            </StackPanel>
+                        </Button>
+
+                        <!-- Tab 2: Products & Inventory -->
+                        <Button Classes="win7-button"
+                                Command="{Binding NavigateCommand}" CommandParameter="Inventory"
+                                Height="34" Padding="12,4" CornerRadius="4,4,0,0" Margin="0,0,0,-1">
+                            <StackPanel Orientation="Horizontal" Spacing="6">
+                                <TextBlock Text="📦" FontSize="13" />
+                                <TextBlock Text="Inventory" FontWeight="Bold" FontSize="12" />
+                            </StackPanel>
+                        </Button>
+
+                        <!-- Tab 3: Customer Loyalty & Rewards -->
+                        <Button Classes="win7-button"
+                                Command="{Binding NavigateCommand}" CommandParameter="Loyalty"
+                                Height="34" Padding="12,4" CornerRadius="4,4,0,0" Margin="0,0,0,-1">
+                            <StackPanel Orientation="Horizontal" Spacing="6">
+                                <TextBlock Text="⭐" FontSize="13" />
+                                <TextBlock Text="Customer Loyalty" FontWeight="Bold" FontSize="12" />
+                            </StackPanel>
+                        </Button>
+
+                        <!-- Tab 4: Sales History & Receipts -->
+                        <Button Classes="win7-button"
+                                Command="{Binding NavigateCommand}" CommandParameter="Sales"
+                                Height="34" Padding="12,4" CornerRadius="4,4,0,0" Margin="0,0,0,-1">
+                            <StackPanel Orientation="Horizontal" Spacing="6">
+                                <TextBlock Text="📜" FontSize="13" />
+                                <TextBlock Text="Sales &amp; Receipts" FontWeight="Bold" FontSize="12" />
+                            </StackPanel>
+                        </Button>
+
+                        <!-- Tab 5: Master Data Setup (Admin) -->
+                        <Button Classes="win7-button"
+                                Command="{Binding NavigateCommand}" CommandParameter="MasterData"
+                                Height="34" Padding="12,4" CornerRadius="4,4,0,0" Margin="0,0,0,-1"
+                                IsEnabled="{Binding IsAdmin}">
+                            <StackPanel Orientation="Horizontal" Spacing="6">
+                                <TextBlock Text="⚙️" FontSize="13" />
+                                <TextBlock Text="Master Data" FontWeight="Bold" FontSize="12" />
+                                <Border Background="#1C5E94" CornerRadius="3" Padding="4,1" Margin="2,0,0,0"
+                                        IsVisible="{Binding IsAdmin}">
+                                    <TextBlock Text="Admin" FontSize="9" FontWeight="Bold" Foreground="#FFFFFF" />
+                                </Border>
+                            </StackPanel>
+                        </Button>
+
+                        <!-- Tab 6: Staff Accounts (Admin) -->
+                        <Button Classes="win7-button"
+                                Command="{Binding NavigateCommand}" CommandParameter="Users"
+                                Height="34" Padding="12,4" CornerRadius="4,4,0,0" Margin="0,0,0,-1"
+                                IsEnabled="{Binding IsAdmin}">
+                            <StackPanel Orientation="Horizontal" Spacing="6">
+                                <TextBlock Text="👥" FontSize="13" />
+                                <TextBlock Text="Staff Accounts" FontWeight="Bold" FontSize="12" />
+                                <Border Background="#1C5E94" CornerRadius="3" Padding="4,1" Margin="2,0,0,0"
+                                        IsVisible="{Binding IsAdmin}">
+                                    <TextBlock Text="Admin" FontSize="9" FontWeight="Bold" Foreground="#FFFFFF" />
+                                </Border>
+                            </StackPanel>
+                        </Button>
+
+                    </StackPanel>
+
+                    <!-- Active Tab Label on Far Right -->
+                    <StackPanel Grid.Column="1" HorizontalAlignment="Right" VerticalAlignment="Center" Orientation="Horizontal" Spacing="6" Margin="0,0,8,4">
+                        <TextBlock Text="Active View:" FontSize="11" Foreground="#557595" />
+                        <TextBlock Text="{Binding ActiveTab}" FontSize="11" FontWeight="Bold" Foreground="#1E4F7C" />
+                    </StackPanel>
+                </Grid>
+            </Border>
+
+            <!-- 3. Content Views Container -->
+            <Grid Grid.Row="2">
+                <Panel IsVisible="{Binding IsRegisterActive}">
+                    <views:RegisterView DataContext="{Binding RegisterVM}" />
+                </Panel>
+
+                <Panel IsVisible="{Binding IsInventoryActive}">
+                    <views:InventoryView DataContext="{Binding InventoryVM}" />
+                </Panel>
+
+                <Panel IsVisible="{Binding IsLoyaltyActive}">
+                    <views:LoyaltyView DataContext="{Binding LoyaltyVM}" />
+                </Panel>
+
+                <Panel IsVisible="{Binding IsSalesActive}">
+                    <views:SalesHistoryView DataContext="{Binding SalesVM}" />
+                </Panel>
+
+                <Panel IsVisible="{Binding IsMasterDataActive}">
+                    <views:MasterDataView DataContext="{Binding MasterDataVM}" />
+                </Panel>
+
+                <Panel IsVisible="{Binding IsUsersActive}">
+                    <views:UserManagementView DataContext="{Binding UsersVM}" />
+                </Panel>
+            </Grid>
+
+            <!-- 4. Windows 7 Classic Status Strip (Bottom) -->
+            <Border Grid.Row="3" Height="28" Background="#E4EDF5" BorderBrush="#B6C9D8" BorderThickness="0,1,0,0" Padding="12,0">
+                <Grid ColumnDefinitions="Auto,*,Auto,Auto">
+
+                    <!-- System Status Message -->
+                    <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+                        <TextBlock Text="ℹ️" FontSize="11" VerticalAlignment="Center" />
+                        <TextBlock Text="{Binding StatusMessage}" FontSize="11" Foreground="#2A4866" FontWeight="SemiBold" VerticalAlignment="Center" />
+                    </StackPanel>
+
+                    <!-- Database Status Indicator -->
+                    <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="6" VerticalAlignment="Center" Margin="16,0">
+                        <Border Width="8" Height="8" CornerRadius="4" Background="#28A745" VerticalAlignment="Center" />
+                        <TextBlock Text="Local DB: Online &amp; Synced" FontSize="11" Foreground="#32506D" VerticalAlignment="Center" />
+                    </StackPanel>
+
+                    <!-- Live Date & Time Clock -->
+                    <Border Grid.Column="3" BorderBrush="#CADCEB" BorderThickness="1,0,0,0" Padding="12,0,0,0" VerticalAlignment="Center">
+                        <StackPanel Orientation="Horizontal" Spacing="6">
+                            <TextBlock Text="🕒" FontSize="11" VerticalAlignment="Center" />
+                            <TextBlock Text="{Binding CurrentDateTimeString}" FontSize="11" FontWeight="SemiBold" Foreground="#1F3C59" VerticalAlignment="Center" />
+                        </StackPanel>
+                    </Border>
+
+                </Grid>
+            </Border>
+
+        </Grid>
+    </Grid>
+</Window>

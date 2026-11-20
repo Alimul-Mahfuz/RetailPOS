@@ -1,0 +1,336 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="using:RetailPOS.ViewModels"
+             xmlns:m="using:RetailPOS.Models"
+             mc:Ignorable="d" d:DesignWidth="1150" d:DesignHeight="780"
+             x:Class="RetailPOS.Views.LoyaltyView"
+             x:DataType="vm:LoyaltyViewModel">
+
+    <Grid>
+        <!-- Main Loyalty Container -->
+        <Border Margin="10" Background="#FFFFFF" CornerRadius="4" BorderBrush="#90AFC9" BorderThickness="1">
+            <Grid RowDefinitions="Auto,Auto,*,Auto">
+
+                <!-- Header & Command Bar -->
+                <Border Grid.Row="0" Background="#E2EDF7" BorderBrush="#B2CDE0" BorderThickness="0,0,0,1" Padding="14,12">
+                    <Grid ColumnDefinitions="Auto,*,Auto">
+                        <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="10" VerticalAlignment="Center">
+                            <Border Width="38" Height="38" CornerRadius="19" Background="#1D5B8C" BorderBrush="#55A0DA" BorderThickness="2">
+                                <TextBlock Text="⭐" FontSize="20" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                            </Border>
+                            <StackPanel VerticalAlignment="Center">
+                                <TextBlock Text="Customer Loyalty &amp; Rewards Program" FontSize="16" FontWeight="Bold" Foreground="#123250" />
+                                <TextBlock Text="Manage members, point earnings, redemption rules, and tier upgrades" FontSize="11" Foreground="#557595" />
+                            </StackPanel>
+                        </StackPanel>
+
+                        <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+                            <Button Classes="win7-button-primary"
+                                    Command="{Binding OpenAddModalCommand}"
+                                    Content="➕ Enroll Member" Height="32" />
+                            <Button Classes="win7-button"
+                                    Command="{Binding OpenEditModalCommand}"
+                                    CommandParameter="{Binding SelectedCustomer}"
+                                    Content="✏️ Edit Selected" Height="32" />
+                            <Button Classes="win7-button"
+                                    Command="{Binding OpenPointsModalCommand}"
+                                    CommandParameter="{Binding SelectedCustomer}"
+                                    Content="⭐ Adjust Points" Height="32" />
+                            <Button Classes="win7-button-danger"
+                                    Command="{Binding PromptDeleteCustomerCommand}"
+                                    CommandParameter="{Binding SelectedCustomer}"
+                                    Content="🗑️ Remove" Height="32" />
+                            <Button Classes="win7-button"
+                                    Command="{Binding RefreshCustomers}"
+                                    Content="⟳ Refresh" Height="32" />
+                        </StackPanel>
+                    </Grid>
+                </Border>
+
+                <!-- KPI Tiles & Search Bar -->
+                <Border Grid.Row="1" Background="#F1F6FB" BorderBrush="#C9DCED" BorderThickness="0,0,0,1" Padding="12,8">
+                    <Grid ColumnDefinitions="*,*,*,280">
+                        <!-- Total Members -->
+                        <Border Grid.Column="0" Background="#FFFFFF" BorderBrush="#BFD7EB" BorderThickness="1" CornerRadius="4" Padding="10,6" Margin="0,0,6,0">
+                            <StackPanel>
+                                <TextBlock Text="Total Active Members" FontSize="11" Foreground="#557595" />
+                                <TextBlock Text="{Binding TotalLoyalMembers}" FontSize="20" FontWeight="Bold" Foreground="#164A78" />
+                            </StackPanel>
+                        </Border>
+
+                        <!-- Points in Circulation -->
+                        <Border Grid.Column="1" Background="#FFFFFF" BorderBrush="#BFD7EB" BorderThickness="1" CornerRadius="4" Padding="10,6" Margin="3,0,3,0">
+                            <StackPanel>
+                                <TextBlock Text="Points in Circulation" FontSize="11" Foreground="#557595" />
+                                <TextBlock Text="{Binding TotalPointsInCirculation, StringFormat='{}{0} pts'}" FontSize="20" FontWeight="Bold" Foreground="#1E7A3C" />
+                            </StackPanel>
+                        </Border>
+
+                        <!-- Member Spending -->
+                        <Border Grid.Column="2" Background="#FFFFFF" BorderBrush="#BFD7EB" BorderThickness="1" CornerRadius="4" Padding="10,6" Margin="3,0,6,0">
+                            <StackPanel>
+                                <TextBlock Text="Total Member Lifetime Spend" FontSize="11" Foreground="#557595" />
+                                <TextBlock Text="{Binding TotalMemberSpending, StringFormat='${0:F2}'}" FontSize="20" FontWeight="Bold" Foreground="#123B60" />
+                            </StackPanel>
+                        </Border>
+
+                        <!-- Search Box -->
+                        <TextBox Classes="win7-input" Grid.Column="3"
+                                 Text="{Binding SearchQuery}"
+                                 PlaceholderText="🔍 Search Phone, Name, Email..."
+                                 Height="34" VerticalContentAlignment="Center" VerticalAlignment="Center" />
+                    </Grid>
+                </Border>
+
+                <!-- Split View: Members Table (Left) & Point Ledger (Right) -->
+                <Grid Grid.Row="2" ColumnDefinitions="*,400">
+
+                    <!-- Left: Members List -->
+                    <Grid Grid.Column="0" RowDefinitions="Auto,*" Margin="0,0,1,0">
+                        <Border Grid.Row="0" Background="#D8E8F5" BorderBrush="#AEC9E0" BorderThickness="0,0,1,1" Padding="10,8">
+                            <Grid ColumnDefinitions="110,*,110,80,90,90,120">
+                                <TextBlock Grid.Column="0" Text="Phone Number" FontWeight="Bold" Foreground="#1E446B" />
+                                <TextBlock Grid.Column="1" Text="Full Name" FontWeight="Bold" Foreground="#1E446B" />
+                                <TextBlock Grid.Column="2" Text="Membership Tier" FontWeight="Bold" Foreground="#1E446B" />
+                                <TextBlock Grid.Column="3" Text="Points" FontWeight="Bold" Foreground="#1E446B" />
+                                <TextBlock Grid.Column="4" Text="Redeem ($)" FontWeight="Bold" Foreground="#1E446B" />
+                                <TextBlock Grid.Column="5" Text="Total Spend" FontWeight="Bold" Foreground="#1E446B" />
+                                <TextBlock Grid.Column="6" Text="Actions" FontWeight="Bold" Foreground="#1E446B" TextAlignment="Center" />
+                            </Grid>
+                        </Border>
+
+                        <ListBox Grid.Row="1" ItemsSource="{Binding Customers}" SelectedItem="{Binding SelectedCustomer}" BorderThickness="0,0,1,0">
+                            <ListBox.ItemTemplate>
+                                <DataTemplate DataType="m:LoyalCustomer">
+                                    <Grid ColumnDefinitions="110,*,110,80,90,90,120" VerticalAlignment="Center">
+                                        <TextBlock Grid.Column="0" Text="{Binding PhoneNumber}" FontWeight="Bold" Foreground="#1B4D7E" VerticalAlignment="Center" />
+                                        <TextBlock Grid.Column="1" Text="{Binding FullName}" FontWeight="SemiBold" Foreground="#1A334D" VerticalAlignment="Center" />
+
+                                        <!-- Tier Badge -->
+                                        <Border Grid.Column="2" CornerRadius="3" Padding="6,2" HorizontalAlignment="Left" VerticalAlignment="Center"
+                                                Background="#D6E8F7">
+                                            <TextBlock Text="{Binding Tier}" FontSize="11" FontWeight="Bold" Foreground="#1A5384" />
+                                        </Border>
+
+                                        <TextBlock Grid.Column="3" Text="{Binding FormattedPoints}" FontWeight="Bold" FontSize="13" Foreground="#176E32" VerticalAlignment="Center" />
+                                        <TextBlock Grid.Column="4" Text="{Binding Points, StringFormat='${0:F2}'}" Foreground="#557595" VerticalAlignment="Center" />
+                                        <TextBlock Grid.Column="5" Text="{Binding FormattedSpent}" Foreground="#334455" VerticalAlignment="Center" />
+
+                                        <!-- Actions -->
+                                        <StackPanel Grid.Column="6" Orientation="Horizontal" Spacing="4" HorizontalAlignment="Center">
+                                            <Button Classes="win7-button"
+                                                    Command="{Binding $parent[UserControl].((vm:LoyaltyViewModel)DataContext).OpenEditModalCommand}"
+                                                    CommandParameter="{Binding}"
+                                                    Content="Edit" Padding="6,2" FontSize="11" />
+                                            <Button Classes="win7-button-danger"
+                                                    Command="{Binding $parent[UserControl].((vm:LoyaltyViewModel)DataContext).PromptDeleteCustomerCommand}"
+                                                    CommandParameter="{Binding}"
+                                                    Content="✕" Padding="6,2" FontSize="11" />
+                                        </StackPanel>
+                                    </Grid>
+                                </DataTemplate>
+                            </ListBox.ItemTemplate>
+                        </ListBox>
+                    </Grid>
+
+                    <!-- Right: Point Ledger & Rules Box -->
+                    <Border Grid.Column="1" Background="#F6FAFD" Padding="12">
+                        <Grid RowDefinitions="Auto,Auto,*,Auto">
+                            <!-- Selected Member Summary -->
+                            <Border Grid.Row="0" Background="#FFFFFF" BorderBrush="#BED4E6" BorderThickness="1" CornerRadius="4" Padding="10,8" Margin="0,0,0,8">
+                                <StackPanel Spacing="3">
+                                    <TextBlock Text="⭐ Member Activity Ledger" FontWeight="Bold" FontSize="13" Foreground="#18426B" />
+                                    <TextBlock Text="{Binding SelectedCustomer.FullName, FallbackValue='Select a customer'}" FontWeight="Bold" FontSize="15" Foreground="#112A44" />
+                                    <Grid ColumnDefinitions="*,*">
+                                        <TextBlock Grid.Column="0" Text="{Binding SelectedCustomer.PhoneNumber, StringFormat='Phone: {0}', FallbackValue=''}" FontSize="11" Foreground="#557595" />
+                                        <TextBlock Grid.Column="1" Text="{Binding SelectedCustomer.Tier, StringFormat='Tier: {0}', FallbackValue=''}" FontSize="11" FontWeight="Bold" Foreground="#1A5384" TextAlignment="Right" />
+                                    </Grid>
+                                </StackPanel>
+                            </Border>
+
+                            <TextBlock Grid.Row="1" Text="Recent Point Transactions:" FontSize="11" FontWeight="SemiBold" Foreground="#557595" Margin="0,0,0,4" />
+
+                            <!-- Transactions List -->
+                            <Border Grid.Row="2" Background="#FFFFFF" BorderBrush="#BED4E6" BorderThickness="1" CornerRadius="4">
+                                <ScrollViewer VerticalScrollBarVisibility="Auto">
+                                    <ItemsControl ItemsSource="{Binding Transactions}">
+                                        <ItemsControl.ItemTemplate>
+                                            <DataTemplate DataType="m:PointTransaction">
+                                                <Border BorderBrush="#EAEFF5" BorderThickness="0,0,0,1" Padding="8,6">
+                                                    <Grid ColumnDefinitions="*,Auto">
+                                                        <StackPanel Grid.Column="0">
+                                                            <TextBlock Text="{Binding Notes}" FontSize="11" FontWeight="SemiBold" Foreground="#1A334D" TextWrapping="Wrap" />
+                                                            <TextBlock Text="{Binding Timestamp, StringFormat='yyyy-MM-dd HH:mm'}" FontSize="10" Foreground="#8899AA" />
+                                                        </StackPanel>
+                                                        <Border Grid.Column="1" CornerRadius="3" Padding="6,2" VerticalAlignment="Center">
+                                                            <TextBlock Text="{Binding PointsDelta, StringFormat='{}{0:+0;-0} pts'}"
+                                                                       FontSize="11" FontWeight="Bold" Foreground="#176E32" />
+                                                        </Border>
+                                                    </Grid>
+                                                </Border>
+                                            </DataTemplate>
+                                        </ItemsControl.ItemTemplate>
+                                    </ItemsControl>
+                                </ScrollViewer>
+                            </Border>
+
+                            <!-- Point Rules Info -->
+                            <Border Grid.Row="3" Background="#E9F2FA" CornerRadius="4" Padding="8,6" Margin="0,8,0,0">
+                                <TextBlock Text="💡 Point Rules: 1 pt per $1 spent • 20 pts = $1.00 discount • Auto Tier Upgrades on lifetime spending."
+                                           FontSize="10.5" Foreground="#335A7E" TextWrapping="Wrap" />
+                            </Border>
+                        </Grid>
+                    </Border>
+
+                </Grid>
+
+                <!-- Status Strip -->
+                <Border Grid.Row="3" Background="#E7F0F8" BorderBrush="#B6D0E4" BorderThickness="0,1,0,0" Padding="12,6">
+                    <Grid ColumnDefinitions="*,Auto">
+                        <TextBlock Text="{Binding StatusMessage, FallbackValue='Loyalty management active.'}"
+                                   FontSize="11" FontWeight="SemiBold" Foreground="#325A82" />
+                        <TextBlock Grid.Column="1" Text="{Binding Customers.Count, StringFormat='Displaying {0} loyal members'}"
+                                   FontSize="11" Foreground="#557595" />
+                    </Grid>
+                </Border>
+            </Grid>
+        </Border>
+
+        <!-- ADD / EDIT CUSTOMER MODAL -->
+        <Border IsVisible="{Binding IsEditModalOpen}"
+                Background="#88000000" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
+            <Border Width="450" Background="#FFFFFF" CornerRadius="8"
+                    BorderBrush="#2B6B9C" BorderThickness="2"
+                    HorizontalAlignment="Center" VerticalAlignment="Center"
+                    BoxShadow="0 10 30 0 #A0000000" Padding="20">
+                <StackPanel Spacing="12">
+                    <Grid ColumnDefinitions="*,Auto">
+                        <TextBlock Text="{Binding ModalTitle}" FontSize="16" FontWeight="Bold" Foreground="#1A4064" />
+                        <Button Classes="win7-button-danger" Grid.Column="1"
+                                Command="{Binding CloseEditModalCommand}"
+                                Content="✕" Width="26" Height="26" Padding="0"
+                                HorizontalContentAlignment="Center" VerticalContentAlignment="Center" />
+                    </Grid>
+                    <Separator Background="#C3D9EB" Height="1" />
+
+                    <!-- Form Error Banner -->
+                    <Border Background="#FEE8E8" BorderBrush="#DD6666" BorderThickness="1" CornerRadius="3"
+                            Padding="8,4" IsVisible="{Binding HasFormError}">
+                        <TextBlock Text="{Binding FormError}" Foreground="#B01111" FontWeight="SemiBold" FontSize="12" />
+                    </Border>
+
+                    <!-- Form Inputs -->
+                    <Grid ColumnDefinitions="130,*" RowDefinitions="Auto,Auto,Auto,Auto" Margin="0,4">
+                        <TextBlock Grid.Row="0" Grid.Column="0" Text="Phone Number:" VerticalAlignment="Center" FontWeight="SemiBold" Margin="0,5" />
+                        <TextBox Classes="win7-input" Grid.Row="0" Grid.Column="1" Text="{Binding EditPhone}" PlaceholderText="Primary Member ID (e.g. 555-0101)" Height="30" Margin="0,5" />
+
+                        <TextBlock Grid.Row="1" Grid.Column="0" Text="Full Name:" VerticalAlignment="Center" FontWeight="SemiBold" Margin="0,5" />
+                        <TextBox Classes="win7-input" Grid.Row="1" Grid.Column="1" Text="{Binding EditFullName}" Height="30" Margin="0,5" />
+
+                        <TextBlock Grid.Row="2" Grid.Column="0" Text="Email Address:" VerticalAlignment="Center" FontWeight="SemiBold" Margin="0,5" />
+                        <TextBox Classes="win7-input" Grid.Row="2" Grid.Column="1" Text="{Binding EditEmail}" PlaceholderText="optional" Height="30" Margin="0,5" />
+
+                        <TextBlock Grid.Row="3" Grid.Column="0" Text="Loyalty Tier:" VerticalAlignment="Center" FontWeight="SemiBold" Margin="0,5" />
+                        <ComboBox Grid.Row="3" Grid.Column="1" ItemsSource="{Binding Tiers}" SelectedItem="{Binding EditTier}" Height="30" Margin="0,5" HorizontalAlignment="Stretch" />
+                    </Grid>
+
+                    <Separator Background="#C3D9EB" Height="1" Margin="0,6" />
+
+                    <!-- Dialog Buttons -->
+                    <Grid ColumnDefinitions="*,*">
+                        <Button Classes="win7-button-primary" Grid.Column="0"
+                                Command="{Binding SaveCustomerFormCommand}"
+                                Content="💾 Save Customer" Margin="0,0,6,0"
+                                HorizontalContentAlignment="Center" Height="36" />
+                        <Button Classes="win7-button" Grid.Column="1"
+                                Command="{Binding CloseEditModalCommand}"
+                                Content="Cancel" Margin="6,0,0,0"
+                                HorizontalContentAlignment="Center" Height="36" />
+                    </Grid>
+                </StackPanel>
+            </Border>
+        </Border>
+
+        <!-- MANUAL POINTS ADJUST MODAL -->
+        <Border IsVisible="{Binding IsPointsModalOpen}"
+                Background="#88000000" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
+            <Border Width="400" Background="#FFFFFF" CornerRadius="8"
+                    BorderBrush="#2B6B9C" BorderThickness="2"
+                    HorizontalAlignment="Center" VerticalAlignment="Center"
+                    BoxShadow="0 10 30 0 #A0000000" Padding="20">
+                <StackPanel Spacing="12">
+                    <Grid ColumnDefinitions="*,Auto">
+                        <TextBlock Text="⭐ Adjust Points Balance" FontSize="15" FontWeight="Bold" Foreground="#1A4064" />
+                        <Button Classes="win7-button-danger" Grid.Column="1"
+                                Command="{Binding ClosePointsModalCommand}"
+                                Content="✕" Width="24" Height="24" Padding="0"
+                                HorizontalContentAlignment="Center" VerticalContentAlignment="Center" />
+                    </Grid>
+
+                    <Border Background="#EAF3FA" CornerRadius="4" Padding="10,6" BorderBrush="#B2D0E6" BorderThickness="1">
+                        <StackPanel>
+                            <TextBlock Text="{Binding SelectedCustomer.FullName, FallbackValue=''}" FontWeight="Bold" FontSize="14" Foreground="#123250" />
+                            <TextBlock Text="{Binding SelectedCustomer.Points, StringFormat='Current Balance: {0} pts', FallbackValue=''}"
+                                       FontSize="12" Foreground="#1E6B34" FontWeight="SemiBold" Margin="0,2,0,0" />
+                        </StackPanel>
+                    </Border>
+
+                    <TextBlock Text="Enter Points to Add (or negative to deduct):" FontSize="12" FontWeight="SemiBold" Foreground="#446688" />
+                    <TextBox Classes="win7-input" Text="{Binding AdjustPointsAmount}" Height="32" FontSize="14" FontWeight="Bold" />
+
+                    <TextBlock Text="Reason / Note:" FontSize="12" FontWeight="SemiBold" Foreground="#446688" />
+                    <TextBox Classes="win7-input" Text="{Binding AdjustPointsReason}" Height="30" />
+
+                    <Grid ColumnDefinitions="*,*" Margin="0,6,0,0">
+                        <Button Classes="win7-button-primary" Grid.Column="0"
+                                Command="{Binding ApplyPointsAdjustmentCommand}"
+                                Content="Apply Points" Margin="0,0,4,0"
+                                HorizontalContentAlignment="Center" Height="34" />
+                        <Button Classes="win7-button" Grid.Column="1"
+                                Command="{Binding ClosePointsModalCommand}"
+                                Content="Cancel" Margin="4,0,0,0"
+                                HorizontalContentAlignment="Center" Height="34" />
+                    </Grid>
+                </StackPanel>
+            </Border>
+        </Border>
+
+        <!-- DELETE WARNING MODAL: CUSTOMER REMOVAL CONFIRMATION -->
+        <Border IsVisible="{Binding IsDeleteModalOpen}"
+                Background="#88000000" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
+            <Border Width="430" Background="#FFFFFF" CornerRadius="8"
+                    BorderBrush="#C43B3B" BorderThickness="2"
+                    HorizontalAlignment="Center" VerticalAlignment="Center"
+                    BoxShadow="0 10 30 0 #A0000000" Padding="20">
+                <StackPanel Spacing="14">
+                    <Grid ColumnDefinitions="Auto,*">
+                        <Border Width="42" Height="42" CornerRadius="21" Background="#FFF2D6" BorderBrush="#F0A624" BorderThickness="2" VerticalAlignment="Top">
+                            <TextBlock Text="⚠️" FontSize="22" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                        </Border>
+                        <StackPanel Grid.Column="1" Margin="12,0,0,0">
+                            <TextBlock Text="Confirm Member Removal" FontSize="16" FontWeight="Bold" Foreground="#8B1818" />
+                            <TextBlock Text="{Binding DeleteTargetName, StringFormat='Are you sure you want to remove customer &quot;{0}&quot; from the loyalty program? Their points balance will be archived.'}"
+                                       FontSize="12" Foreground="#444444" TextWrapping="Wrap" Margin="0,4,0,0" />
+                        </StackPanel>
+                    </Grid>
+
+                    <Separator Background="#E0E0E0" Height="1" />
+
+                    <Grid ColumnDefinitions="*,*">
+                        <Button Classes="win7-button-danger" Grid.Column="0"
+                                Command="{Binding ConfirmDeleteCustomerCommand}"
+                                Content="Yes, Remove Customer" Height="36"
+                                HorizontalContentAlignment="Center" Margin="0,0,6,0" />
+                        <Button Classes="win7-button" Grid.Column="1"
+                                Command="{Binding CancelDeleteCustomerCommand}"
+                                Content="Cancel" Height="36"
+                                HorizontalContentAlignment="Center" Margin="6,0,0,0" />
+                    </Grid>
+                </StackPanel>
+            </Border>
+        </Border>
+
+    </Grid>
+</UserControl>

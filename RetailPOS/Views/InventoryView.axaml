@@ -1,0 +1,336 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="using:RetailPOS.ViewModels"
+             xmlns:m="using:RetailPOS.Models"
+             mc:Ignorable="d" d:DesignWidth="1100" d:DesignHeight="750"
+             x:Class="RetailPOS.Views.InventoryView"
+             x:DataType="vm:InventoryViewModel">
+
+    <Grid>
+        <!-- Main Inventory Container -->
+        <Border Margin="10" Background="#FFFFFF" CornerRadius="4" BorderBrush="#90AFC9" BorderThickness="1">
+            <Grid RowDefinitions="Auto,Auto,*,Auto">
+
+                <!-- Top Command Bar (Windows 7 Explorer Ribbon Style) -->
+                <Border Grid.Row="0" Background="#E3EDF6" BorderBrush="#B2CDE0" BorderThickness="0,0,0,1" Padding="12,10">
+                    <Grid ColumnDefinitions="Auto,*,Auto">
+
+                        <!-- Action Buttons -->
+                        <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="8">
+                            <Button Classes="win7-button-primary"
+                                    Command="{Binding OpenAddModalCommand}"
+                                    Content="➕ Add New Product" />
+                            <Button Classes="win7-button"
+                                    Command="{Binding OpenEditModalCommand}"
+                                    CommandParameter="{Binding SelectedProduct}"
+                                    Content="✏️ Edit Selected" />
+                            <Button Classes="win7-button"
+                                    Command="{Binding OpenAdjustStockModalCommand}"
+                                    CommandParameter="{Binding SelectedProduct}"
+                                    Content="📦 Restock / Adjust" />
+                            <Button Classes="win7-button-danger"
+                                    Command="{Binding PromptDeleteProductCommand}"
+                                    CommandParameter="{Binding SelectedProduct}"
+                                    Content="🗑️ Delete" />
+                        </StackPanel>
+
+                        <!-- Search & Filter Controls -->
+                        <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="8">
+                            <TextBox Classes="win7-input" Width="200"
+                                     Text="{Binding SearchQuery}"
+                                     PlaceholderText="🔍 Search SKU or Name..." Height="30" VerticalContentAlignment="Center" />
+
+                            <ComboBox Width="130" Height="30"
+                                      ItemsSource="{Binding FilterCategories}"
+                                      SelectedItem="{Binding SelectedCategory}" />
+
+                            <CheckBox Content="⚠️ Low Stock Only"
+                                      IsChecked="{Binding ShowLowStockOnly}"
+                                      VerticalAlignment="Center" FontWeight="SemiBold" Foreground="#8A5100" />
+
+                            <Button Classes="win7-button"
+                                    Command="{Binding RefreshProducts}"
+                                    Content="⟳ Refresh" Height="30" />
+                        </StackPanel>
+                    </Grid>
+                </Border>
+
+                <!-- KPI Metric Tiles -->
+                <Border Grid.Row="1" Background="#F1F6FB" BorderBrush="#C9DCED" BorderThickness="0,0,0,1" Padding="12,8">
+                    <Grid ColumnDefinitions="*,*,*,*">
+                        <!-- Total Products -->
+                        <Border Grid.Column="0" Background="#FFFFFF" BorderBrush="#BFD7EB" BorderThickness="1" CornerRadius="4" Padding="10,6" Margin="0,0,6,0">
+                            <StackPanel>
+                                <TextBlock Text="Total Grocery Products" FontSize="11" Foreground="#557595" />
+                                <TextBlock Text="{Binding TotalProductsCount}" FontSize="20" FontWeight="Bold" Foreground="#18436B" />
+                            </StackPanel>
+                        </Border>
+
+                        <!-- Total Stock Units -->
+                        <Border Grid.Column="1" Background="#FFFFFF" BorderBrush="#BFD7EB" BorderThickness="1" CornerRadius="4" Padding="10,6" Margin="3,0,3,0">
+                            <StackPanel>
+                                <TextBlock Text="Total Inventory Units" FontSize="11" Foreground="#557595" />
+                                <TextBlock Text="{Binding TotalStockUnits}" FontSize="20" FontWeight="Bold" Foreground="#1A5C38" />
+                            </StackPanel>
+                        </Border>
+
+                        <!-- Low Stock Items -->
+                        <Border Grid.Column="2" Background="#FFFBF0" BorderBrush="#EBD498" BorderThickness="1" CornerRadius="4" Padding="10,6" Margin="3,0,3,0">
+                            <StackPanel>
+                                <TextBlock Text="⚠️ Low Stock Alert (Reorder)" FontSize="11" Foreground="#996000" />
+                                <TextBlock Text="{Binding LowStockCount}" FontSize="20" FontWeight="Bold" Foreground="#C96500" />
+                            </StackPanel>
+                        </Border>
+
+                        <!-- Out of Stock Items -->
+                        <Border Grid.Column="3" Background="#FFF2F2" BorderBrush="#EBB8B8" BorderThickness="1" CornerRadius="4" Padding="10,6" Margin="6,0,0,0">
+                            <StackPanel>
+                                <TextBlock Text="❌ Out of Stock" FontSize="11" Foreground="#A01B1B" />
+                                <TextBlock Text="{Binding OutOfStockCount}" FontSize="20" FontWeight="Bold" Foreground="#D62020" />
+                            </StackPanel>
+                        </Border>
+                    </Grid>
+                </Border>
+
+                <!-- Product Data Table -->
+                <Grid Grid.Row="2" RowDefinitions="Auto,*">
+
+                    <!-- Table Header -->
+                    <Border Grid.Row="0" Background="#D8E8F5" BorderBrush="#AEC9E0" BorderThickness="0,0,0,1" Padding="10,8">
+                        <Grid ColumnDefinitions="90,*,130,90,90,80,80,100,160">
+                            <TextBlock Grid.Column="0" Text="SKU / Barcode" FontWeight="Bold" Foreground="#1E446B" />
+                            <TextBlock Grid.Column="1" Text="Product Name" FontWeight="Bold" Foreground="#1E446B" />
+                            <TextBlock Grid.Column="2" Text="Category" FontWeight="Bold" Foreground="#1E446B" />
+                            <TextBlock Grid.Column="3" Text="Price ($)" FontWeight="Bold" Foreground="#1E446B" />
+                            <TextBlock Grid.Column="4" Text="Cost ($)" FontWeight="Bold" Foreground="#1E446B" />
+                            <TextBlock Grid.Column="5" Text="Stock" FontWeight="Bold" Foreground="#1E446B" />
+                            <TextBlock Grid.Column="6" Text="Min Stock" FontWeight="Bold" Foreground="#1E446B" />
+                            <TextBlock Grid.Column="7" Text="Status" FontWeight="Bold" Foreground="#1E446B" />
+                            <TextBlock Grid.Column="8" Text="Quick Actions" FontWeight="Bold" Foreground="#1E446B" TextAlignment="Center" />
+                        </Grid>
+                    </Border>
+
+                    <!-- Table Rows -->
+                    <ListBox Grid.Row="1" ItemsSource="{Binding Products}" SelectedItem="{Binding SelectedProduct}">
+                        <ListBox.ItemTemplate>
+                            <DataTemplate DataType="m:Product">
+                                <Grid ColumnDefinitions="90,*,130,90,90,80,80,100,160" VerticalAlignment="Center">
+                                    <TextBlock Grid.Column="0" Text="{Binding Barcode}" FontWeight="SemiBold" Foreground="#446688" VerticalAlignment="Center" />
+                                    <TextBlock Grid.Column="1" Text="{Binding Name}" FontWeight="Bold" Foreground="#18334E" VerticalAlignment="Center" />
+                                    <TextBlock Grid.Column="2" Text="{Binding Category}" Foreground="#557799" VerticalAlignment="Center" />
+                                    <TextBlock Grid.Column="3" Text="{Binding FormattedPrice}" FontWeight="Bold" Foreground="#136025" VerticalAlignment="Center" />
+                                    <TextBlock Grid.Column="4" Text="{Binding Cost, StringFormat='${0:F2}'}" Foreground="#667788" VerticalAlignment="Center" />
+                                    <TextBlock Grid.Column="5" Text="{Binding Stock}" FontWeight="Bold" FontSize="14" Foreground="#1A4A7A" VerticalAlignment="Center" />
+                                    <TextBlock Grid.Column="6" Text="{Binding MinStock}" Foreground="#778899" VerticalAlignment="Center" />
+
+                                    <!-- Status Badge -->
+                                    <Border Grid.Column="7" CornerRadius="3" Padding="6,2" HorizontalAlignment="Left" VerticalAlignment="Center">
+                                        <TextBlock Text="{Binding StockStatus}" FontSize="11" FontWeight="Bold" Foreground="#1A5C38" />
+                                    </Border>
+
+                                    <!-- Quick Row Actions -->
+                                    <StackPanel Grid.Column="8" Orientation="Horizontal" Spacing="4" HorizontalAlignment="Center">
+                                        <Button Classes="win7-button"
+                                                Command="{Binding $parent[UserControl].((vm:InventoryViewModel)DataContext).OpenEditModalCommand}"
+                                                CommandParameter="{Binding}"
+                                                Content="Edit" Padding="6,2" FontSize="11" />
+                                        <Button Classes="win7-button"
+                                                Command="{Binding $parent[UserControl].((vm:InventoryViewModel)DataContext).OpenAdjustStockModalCommand}"
+                                                CommandParameter="{Binding}"
+                                                Content="+10" Padding="6,2" FontSize="11" />
+                                        <Button Classes="win7-button-danger"
+                                                Command="{Binding $parent[UserControl].((vm:InventoryViewModel)DataContext).PromptDeleteProductCommand}"
+                                                CommandParameter="{Binding}"
+                                                Content="✕" Padding="6,2" FontSize="11" />
+                                    </StackPanel>
+                                </Grid>
+                            </DataTemplate>
+                        </ListBox.ItemTemplate>
+                    </ListBox>
+                </Grid>
+
+                <!-- Inventory Bottom Status -->
+                <Border Grid.Row="3" Background="#E7F0F8" BorderBrush="#B6D0E4" BorderThickness="0,1,0,0" Padding="12,6">
+                    <Grid ColumnDefinitions="*,Auto">
+                        <TextBlock Text="💡 Hint: Double click or select any product and click 'Edit' to change price, stock, or category."
+                                   FontSize="11" Foreground="#446E94" />
+                        <TextBlock Grid.Column="1" Text="{Binding Products.Count, StringFormat='Displaying {0} products'}"
+                                   FontSize="11" FontWeight="SemiBold" Foreground="#446E94" />
+                    </Grid>
+                </Border>
+            </Grid>
+        </Border>
+
+        <!-- ADD / EDIT PRODUCT MODAL DIALOG -->
+        <Border IsVisible="{Binding IsEditModalOpen}"
+                Background="#88000000" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
+            <Border Width="480" Background="#FFFFFF" CornerRadius="8"
+                    BorderBrush="#2B6B9C" BorderThickness="2"
+                    HorizontalAlignment="Center" VerticalAlignment="Center"
+                    BoxShadow="0 10 30 0 #A0000000" Padding="20">
+                <StackPanel Spacing="12">
+
+                    <!-- Modal Header -->
+                    <Grid ColumnDefinitions="*,Auto">
+                        <TextBlock Text="{Binding ModalTitle}" FontSize="16" FontWeight="Bold" Foreground="#1A4064" />
+                        <Button Classes="win7-button-danger" Grid.Column="1"
+                                Command="{Binding CloseEditModalCommand}"
+                                Content="✕" Width="26" Height="26" Padding="0"
+                                HorizontalContentAlignment="Center" VerticalContentAlignment="Center" />
+                    </Grid>
+                    <Separator Background="#C3D9EB" Height="1" />
+
+                    <!-- Form Error Banner -->
+                    <Border Background="#FEE8E8" BorderBrush="#DD6666" BorderThickness="1" CornerRadius="3"
+                            Padding="8,4" IsVisible="{Binding HasFormError}">
+                        <TextBlock Text="{Binding FormError}" Foreground="#B01111" FontWeight="SemiBold" FontSize="12" />
+                    </Border>
+
+                    <!-- Form Inputs (Clean, empty fields for fresh product entry) -->
+                    <Grid ColumnDefinitions="140,*" RowDefinitions="Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto" Margin="0,4">
+
+                        <!-- Barcode -->
+                        <TextBlock Grid.Row="0" Grid.Column="0" Text="Barcode / SKU:" VerticalAlignment="Center" FontWeight="SemiBold" Margin="0,4" />
+                        <TextBox Classes="win7-input" Grid.Row="0" Grid.Column="1" Text="{Binding EditBarcode}" PlaceholderText="Scan or enter SKU..." Height="30" Margin="0,4" />
+
+                        <!-- Product Name -->
+                        <TextBlock Grid.Row="1" Grid.Column="0" Text="Product Name:" VerticalAlignment="Center" FontWeight="SemiBold" Margin="0,4" />
+                        <TextBox Classes="win7-input" Grid.Row="1" Grid.Column="1" Text="{Binding EditName}" PlaceholderText="Enter product name..." Height="30" Margin="0,4" />
+
+                        <!-- Category -->
+                        <TextBlock Grid.Row="2" Grid.Column="0" Text="Category:" VerticalAlignment="Center" FontWeight="SemiBold" Margin="0,4" />
+                        <ComboBox Grid.Row="2" Grid.Column="1" ItemsSource="{Binding ProductCategories}" SelectedItem="{Binding EditCategory}" Height="30" Margin="0,4" HorizontalAlignment="Stretch" />
+
+                        <!-- Price -->
+                        <TextBlock Grid.Row="3" Grid.Column="0" Text="Selling Price ($):" VerticalAlignment="Center" FontWeight="SemiBold" Margin="0,4" />
+                        <TextBox Classes="win7-input" Grid.Row="3" Grid.Column="1" Text="{Binding EditPrice}" PlaceholderText="0.00" Height="30" Margin="0,4" />
+
+                        <!-- Cost -->
+                        <TextBlock Grid.Row="4" Grid.Column="0" Text="Cost Price ($):" VerticalAlignment="Center" FontWeight="SemiBold" Margin="0,4" />
+                        <TextBox Classes="win7-input" Grid.Row="4" Grid.Column="1" Text="{Binding EditCost}" PlaceholderText="0.00" Height="30" Margin="0,4" />
+
+                        <!-- Current Stock -->
+                        <TextBlock Grid.Row="5" Grid.Column="0" Text="Current Stock:" VerticalAlignment="Center" FontWeight="SemiBold" Margin="0,4" />
+                        <TextBox Classes="win7-input" Grid.Row="5" Grid.Column="1" Text="{Binding EditStock}" PlaceholderText="0" Height="30" Margin="0,4" />
+
+                        <!-- Min Stock (Reorder Level) -->
+                        <TextBlock Grid.Row="6" Grid.Column="0" Text="Min Stock (Alert):" VerticalAlignment="Center" FontWeight="SemiBold" Margin="0,4" />
+                        <TextBox Classes="win7-input" Grid.Row="6" Grid.Column="1" Text="{Binding EditMinStock}" PlaceholderText="5" Height="30" Margin="0,4" />
+
+                        <!-- Unit of Measure -->
+                        <TextBlock Grid.Row="7" Grid.Column="0" Text="Unit of Measure:" VerticalAlignment="Center" FontWeight="SemiBold" Margin="0,4" />
+                        <TextBox Classes="win7-input" Grid.Row="7" Grid.Column="1" Text="{Binding EditUnit}" PlaceholderText="pcs, kg, pack, etc." Height="30" Margin="0,4" />
+                    </Grid>
+
+                    <Separator Background="#C3D9EB" Height="1" Margin="0,6" />
+
+                    <!-- Dialog Buttons -->
+                    <Grid ColumnDefinitions="*,*">
+                        <Button Classes="win7-button-primary" Grid.Column="0"
+                                Command="{Binding SaveProductFormCommand}"
+                                Content="💾 Save Product" Margin="0,0,6,0"
+                                HorizontalContentAlignment="Center" Height="36" />
+                        <Button Classes="win7-button" Grid.Column="1"
+                                Command="{Binding CloseEditModalCommand}"
+                                Content="Cancel" Margin="6,0,0,0"
+                                HorizontalContentAlignment="Center" Height="36" />
+                    </Grid>
+                </StackPanel>
+            </Border>
+        </Border>
+
+        <!-- STOCK ADJUST MODAL DIALOG -->
+        <Border IsVisible="{Binding IsAdjustModalOpen}"
+                Background="#88000000" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
+            <Border Width="400" Background="#FFFFFF" CornerRadius="8"
+                    BorderBrush="#2B6B9C" BorderThickness="2"
+                    HorizontalAlignment="Center" VerticalAlignment="Center"
+                    BoxShadow="0 10 30 0 #A0000000" Padding="20">
+                <StackPanel Spacing="12">
+                    <Grid ColumnDefinitions="*,Auto">
+                        <TextBlock Text="📦 Restock / Adjust Inventory" FontSize="15" FontWeight="Bold" Foreground="#1A4064" />
+                        <Button Classes="win7-button-danger" Grid.Column="1"
+                                Command="{Binding CloseAdjustModalCommand}"
+                                Content="✕" Width="24" Height="24" Padding="0"
+                                HorizontalContentAlignment="Center" VerticalContentAlignment="Center" />
+                    </Grid>
+
+                    <Border Background="#EAF3FA" CornerRadius="4" Padding="10,6" BorderBrush="#B2D0E6" BorderThickness="1">
+                        <StackPanel>
+                            <TextBlock Text="{Binding SelectedProduct.Name, FallbackValue=''}" FontWeight="Bold" FontSize="14" Foreground="#123250" />
+                            <TextBlock Text="{Binding SelectedProduct.Stock, StringFormat='Current Stock: {0}', FallbackValue=''}"
+                                       FontSize="12" Foreground="#446688" Margin="0,2,0,0" />
+                        </StackPanel>
+                    </Border>
+
+                    <!-- Quick Add Preset Buttons -->
+                    <TextBlock Text="Quick Add Presets:" FontSize="12" FontWeight="SemiBold" Foreground="#446688" />
+                    <UniformGrid Columns="4">
+                        <Button Classes="win7-button" Content="+10"
+                                Command="{Binding QuickAddStockCommand}" CommandParameter="10" />
+                        <Button Classes="win7-button" Content="+25"
+                                Command="{Binding QuickAddStockCommand}" CommandParameter="25" />
+                        <Button Classes="win7-button" Content="+50"
+                                Command="{Binding QuickAddStockCommand}" CommandParameter="50" />
+                        <Button Classes="win7-button" Content="+100"
+                                Command="{Binding QuickAddStockCommand}" CommandParameter="100" />
+                    </UniformGrid>
+
+                    <!-- Custom Delta -->
+                    <TextBlock Text="Or Enter Custom Adjustment (+ or -):" FontSize="12" FontWeight="SemiBold" Foreground="#446688" />
+                    <TextBox Classes="win7-input" Text="{Binding AdjustDelta}" Height="32" FontSize="14" FontWeight="Bold" />
+
+                    <!-- Submit & Cancel -->
+                    <Grid ColumnDefinitions="*,*" Margin="0,6,0,0">
+                        <Button Classes="win7-button-primary" Grid.Column="0"
+                                Command="{Binding ApplyAdjustStockCommand}"
+                                Content="Apply Restock" Margin="0,0,4,0"
+                                HorizontalContentAlignment="Center" Height="34" />
+                        <Button Classes="win7-button" Grid.Column="1"
+                                Command="{Binding CloseAdjustModalCommand}"
+                                Content="Cancel" Margin="4,0,0,0"
+                                HorizontalContentAlignment="Center" Height="34" />
+                    </Grid>
+                </StackPanel>
+            </Border>
+        </Border>
+
+        <!-- DELETE WARNING MODAL: PRODUCT DELETION CONFIRMATION -->
+        <Border IsVisible="{Binding IsDeleteModalOpen}"
+                Background="#88000000" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
+            <Border Width="430" Background="#FFFFFF" CornerRadius="8"
+                    BorderBrush="#C43B3B" BorderThickness="2"
+                    HorizontalAlignment="Center" VerticalAlignment="Center"
+                    BoxShadow="0 10 30 0 #A0000000" Padding="20">
+                <StackPanel Spacing="14">
+                    <Grid ColumnDefinitions="Auto,*">
+                        <Border Width="42" Height="42" CornerRadius="21" Background="#FFF2D6" BorderBrush="#F0A624" BorderThickness="2" VerticalAlignment="Top">
+                            <TextBlock Text="⚠️" FontSize="22" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                        </Border>
+                        <StackPanel Grid.Column="1" Margin="12,0,0,0">
+                            <TextBlock Text="Confirm Product Deletion" FontSize="16" FontWeight="Bold" Foreground="#8B1818" />
+                            <TextBlock Text="{Binding DeleteTargetName, StringFormat='Are you sure you want to delete product &quot;{0}&quot;? It will be deactivated from the store catalog.'}"
+                                       FontSize="12" Foreground="#444444" TextWrapping="Wrap" Margin="0,4,0,0" />
+                        </StackPanel>
+                    </Grid>
+
+                    <Separator Background="#E0E0E0" Height="1" />
+
+                    <Grid ColumnDefinitions="*,*">
+                        <Button Classes="win7-button-danger" Grid.Column="0"
+                                Command="{Binding ConfirmDeleteProductCommand}"
+                                Content="Yes, Delete Product" Height="36"
+                                HorizontalContentAlignment="Center" Margin="0,0,6,0" />
+                        <Button Classes="win7-button" Grid.Column="1"
+                                Command="{Binding CancelDeleteProductCommand}"
+                                Content="Cancel" Height="36"
+                                HorizontalContentAlignment="Center" Margin="6,0,0,0" />
+                    </Grid>
+                </StackPanel>
+            </Border>
+        </Border>
+
+    </Grid>
+</UserControl>

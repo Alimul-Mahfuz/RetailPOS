@@ -1,0 +1,451 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="using:RetailPOS.ViewModels"
+             xmlns:m="using:RetailPOS.Models"
+             mc:Ignorable="d" d:DesignWidth="1150" d:DesignHeight="780"
+             x:Class="RetailPOS.Views.RegisterView"
+             x:DataType="vm:RegisterViewModel">
+
+    <Grid>
+        <!-- Main Register Split Grid -->
+        <Grid ColumnDefinitions="*,460" Margin="10">
+
+            <!-- LEFT: PRODUCT CATALOG & BARCODE SCANNER -->
+            <Border Grid.Column="0" Background="#F0F5FA" CornerRadius="4" BorderBrush="#90AFC9" BorderThickness="1" Margin="0,0,10,0">
+                <Grid RowDefinitions="Auto,Auto,*,Auto">
+
+                    <!-- Barcode & Search Bar -->
+                    <Border Grid.Row="0" Background="#E2EDF7" BorderBrush="#B2CBE0" BorderThickness="0,0,0,1" Padding="12,10">
+                        <Grid ColumnDefinitions="*,Auto,Auto">
+                            <TextBox Classes="win7-input" Grid.Column="0"
+                                     Text="{Binding SearchQuery}"
+                                     PlaceholderText="🔍 Scan barcode or search product name..."
+                                     FontSize="14" Height="36" VerticalContentAlignment="Center" Margin="0,0,8,0" />
+                            <Button Classes="win7-button" Grid.Column="1"
+                                    Command="{Binding SearchOrAddBarcodeCommand}"
+                                    Content="Scan / Add (Enter)"
+                                    Height="36" VerticalContentAlignment="Center" Margin="0,0,6,0" />
+                            <Button Classes="win7-button" Grid.Column="2"
+                                    Command="{Binding RefreshCatalog}"
+                                    Content="⟳ Refresh" Height="36" VerticalContentAlignment="Center" />
+                        </Grid>
+                    </Border>
+
+                    <!-- Category Pills Navigation -->
+                    <Border Grid.Row="1" Background="#ECF3FA" BorderBrush="#CADCEB" BorderThickness="0,0,0,1" Padding="10,6">
+                        <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Disabled">
+                            <ItemsControl ItemsSource="{Binding Categories}">
+                                <ItemsControl.ItemsPanel>
+                                    <ItemsPanelTemplate>
+                                        <StackPanel Orientation="Horizontal" Spacing="6" />
+                                    </ItemsPanelTemplate>
+                                </ItemsControl.ItemsPanel>
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate>
+                                        <Button Classes="win7-button"
+                                                Content="{Binding}"
+                                                Padding="10,5"
+                                                FontSize="12"
+                                                Command="{Binding $parent[UserControl].((vm:RegisterViewModel)DataContext).SetCategoryCommand}"
+                                                CommandParameter="{Binding}" />
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                        </ScrollViewer>
+                    </Border>
+
+                    <!-- Product Grid Catalog -->
+                    <ScrollViewer Grid.Row="2" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" Padding="10">
+                        <ItemsControl ItemsSource="{Binding FilteredProducts}">
+                            <ItemsControl.ItemsPanel>
+                                <ItemsPanelTemplate>
+                                    <WrapPanel Orientation="Horizontal" />
+                                </ItemsPanelTemplate>
+                            </ItemsControl.ItemsPanel>
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate DataType="m:Product">
+                                    <Button Classes="win7-button"
+                                            Command="{Binding $parent[UserControl].((vm:RegisterViewModel)DataContext).AddToCartCommand}"
+                                            CommandParameter="{Binding}"
+                                            Width="168" Height="110" Margin="5" Padding="0"
+                                            HorizontalContentAlignment="Stretch" VerticalContentAlignment="Stretch">
+                                        <Border Background="#F9FCFE" BorderBrush="#B6D1E6" BorderThickness="1" CornerRadius="3" Padding="8">
+                                            <Grid RowDefinitions="Auto,*,Auto">
+                                                <!-- Category & Barcode -->
+                                                <Grid Grid.Row="0" ColumnDefinitions="*,Auto">
+                                                    <TextBlock Text="{Binding Category}" FontSize="10" Foreground="#5A7794" FontWeight="SemiBold" TextTrimming="CharacterEllipsis" />
+                                                    <TextBlock Grid.Column="1" Text="{Binding Barcode}" FontSize="10" Foreground="#88A0B8" />
+                                                </Grid>
+
+                                                <!-- Product Name -->
+                                                <TextBlock Grid.Row="1" Text="{Binding Name}"
+                                                           FontSize="12" FontWeight="Bold" Foreground="#1A334D"
+                                                           TextWrapping="Wrap" VerticalAlignment="Center" Margin="0,3" />
+
+                                                <!-- Price and Stock -->
+                                                <Grid Grid.Row="2" ColumnDefinitions="*,Auto">
+                                                    <TextBlock Text="{Binding FormattedPrice}"
+                                                               FontSize="14" FontWeight="ExtraBold" Foreground="#186429" VerticalAlignment="Bottom" />
+
+                                                    <!-- Stock Status Pill -->
+                                                    <Border Grid.Column="1" CornerRadius="3" Padding="5,2" VerticalAlignment="Bottom"
+                                                            Background="#D8EAF8">
+                                                        <TextBlock Text="{Binding Stock, StringFormat='Stock: {0}'}"
+                                                                   FontSize="10" FontWeight="SemiBold" Foreground="#1E5482" />
+                                                    </Border>
+                                                </Grid>
+                                            </Grid>
+                                        </Border>
+                                    </Button>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </ScrollViewer>
+
+                    <!-- Catalog Bottom Helper -->
+                    <Border Grid.Row="3" Background="#E4EFF8" BorderBrush="#C2D8EA" BorderThickness="0,1,0,0" Padding="12,6">
+                        <TextBlock Text="💡 Tip: Click any product card to add to cart, or scan barcode directly."
+                                   FontSize="11" Foreground="#4A6E8F" />
+                    </Border>
+                </Grid>
+            </Border>
+
+            <!-- RIGHT: CART, LOYALTY & CHECKOUT REGISTER -->
+            <Border Grid.Column="1" Background="#FFFFFF" CornerRadius="4" BorderBrush="#90AFC9" BorderThickness="1">
+                <Grid RowDefinitions="Auto,Auto,*,Auto,Auto">
+
+                    <!-- Cart Header -->
+                    <Border Grid.Row="0" Background="#D5E6F5" BorderBrush="#A7C5DE" BorderThickness="0,0,0,1" Padding="12,8">
+                        <Grid ColumnDefinitions="*,Auto,Auto">
+                            <StackPanel Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
+                                <TextBlock Text="🛒 Customer Cart" FontSize="15" FontWeight="Bold" Foreground="#1A3A5A" />
+                                <Border Background="#1D5C8F" CornerRadius="10" Padding="6,1" VerticalAlignment="Center">
+                                    <TextBlock Text="{Binding TotalItemCount, StringFormat='{}{0} items'}"
+                                               FontSize="11" FontWeight="Bold" Foreground="#FFFFFF" />
+                                </Border>
+                            </StackPanel>
+
+                            <Button Classes="win7-button-danger" Grid.Column="2"
+                                    Command="{Binding PromptClearCartCommand}"
+                                    Content="Clear Cart" FontSize="11" Padding="8,4" />
+                        </Grid>
+                    </Border>
+
+                    <!-- CUSTOMER LOYALTY BAR AT REGISTER -->
+                    <Border Grid.Row="1" Background="#EBF4FD" BorderBrush="#BED4E6" BorderThickness="0,0,0,1" Padding="10,6">
+                        <StackPanel Spacing="6">
+                            <!-- When No Customer Attached: Search & Attach -->
+                            <Grid ColumnDefinitions="*,Auto" IsVisible="{Binding !HasAttachedCustomer}">
+                                <TextBox Classes="win7-input" Grid.Column="0"
+                                         Text="{Binding CustomerSearchQuery}"
+                                         PlaceholderText="👤 Customer Phone or Name (Loyalty)..."
+                                         Height="28" FontSize="11" Margin="0,0,6,0" VerticalContentAlignment="Center" />
+                                <Button Classes="win7-button" Grid.Column="1"
+                                        Command="{Binding SearchAndAttachCustomerCommand}"
+                                        Content="Attach Member" Padding="8,2" FontSize="11" Height="28" />
+                            </Grid>
+
+                            <!-- When Customer Attached: Display Member Info & Points Redemption -->
+                            <StackPanel IsVisible="{Binding HasAttachedCustomer}" Spacing="4">
+                                <Grid ColumnDefinitions="Auto,*,Auto">
+                                    <Border Background="#18507D" CornerRadius="3" Padding="6,2" VerticalAlignment="Center">
+                                        <TextBlock Text="{Binding AttachedCustomer.Tier, FallbackValue='Bronze'}"
+                                                   FontSize="10" FontWeight="Bold" Foreground="#FFFFFF" />
+                                    </Border>
+                                    <TextBlock Grid.Column="1"
+                                               Text="{Binding AttachedCustomer.FullName, StringFormat=' {0}'}"
+                                               FontWeight="Bold" FontSize="12" Foreground="#123250" VerticalAlignment="Center" Margin="6,0" />
+                                    <Button Classes="win7-button-danger" Grid.Column="2"
+                                            Command="{Binding DetachCustomerCommand}"
+                                            Content="Detach" Padding="6,1" FontSize="10" />
+                                </Grid>
+
+                                <Grid ColumnDefinitions="*,Auto">
+                                    <TextBlock Text="{Binding AttachedCustomer.Points, StringFormat='Available Points: {0} pts'}"
+                                               FontSize="11" FontWeight="SemiBold" Foreground="#1E6B34" VerticalAlignment="Center" />
+
+                                    <!-- Quick Redeem Buttons -->
+                                    <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="4">
+                                        <TextBlock Text="Redeem:" FontSize="10" Foreground="#557595" VerticalAlignment="Center" />
+                                        <Button Classes="win7-button" Content="20 pts" Padding="4,1" FontSize="10"
+                                                Command="{Binding RedeemCustomerPointsCommand}" CommandParameter="20" />
+                                        <Button Classes="win7-button" Content="50 pts" Padding="4,1" FontSize="10"
+                                                Command="{Binding RedeemCustomerPointsCommand}" CommandParameter="50" />
+                                        <Button Classes="win7-button-primary" Content="Max" Padding="6,1" FontSize="10"
+                                                Command="{Binding RedeemCustomerPointsCommand}" CommandParameter="Max" />
+                                    </StackPanel>
+                                </Grid>
+                            </StackPanel>
+
+                            <!-- Loyalty Notification -->
+                            <TextBlock Text="{Binding LoyaltyNotice}" FontSize="10" FontWeight="SemiBold"
+                                       Foreground="#2A6496" TextTrimming="CharacterEllipsis"
+                                       IsVisible="{Binding LoyaltyNotice, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+                        </StackPanel>
+                    </Border>
+
+                    <!-- Cart Items List -->
+                    <ScrollViewer Grid.Row="2" VerticalScrollBarVisibility="Auto">
+                        <ItemsControl ItemsSource="{Binding Cart}">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate DataType="m:CartItem">
+                                    <Border BorderBrush="#E0EBF3" BorderThickness="0,0,0,1" Padding="8,6" Background="#FAFDFE">
+                                        <Grid ColumnDefinitions="*,Auto,Auto,Auto">
+                                            <!-- Product Details -->
+                                            <StackPanel Grid.Column="0" VerticalAlignment="Center">
+                                                <TextBlock Text="{Binding Product.Name}" FontWeight="Bold" FontSize="12" Foreground="#17314A" TextTrimming="CharacterEllipsis" />
+                                                <TextBlock Text="{Binding FormattedUnitPrice, StringFormat='Price: {0}'}" FontSize="11" Foreground="#597793" />
+                                            </StackPanel>
+
+                                            <!-- Quantity Controls -->
+                                            <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="4" VerticalAlignment="Center" Margin="8,0">
+                                                <Button Classes="win7-button"
+                                                        Command="{Binding $parent[UserControl].((vm:RegisterViewModel)DataContext).DecrementQuantityCommand}"
+                                                        CommandParameter="{Binding}"
+                                                        Content="-" Width="26" Height="26" Padding="0"
+                                                        HorizontalContentAlignment="Center" VerticalContentAlignment="Center" />
+
+                                                <Border Background="#FFFFFF" BorderBrush="#95B5CE" BorderThickness="1" CornerRadius="2"
+                                                        Width="34" Height="26">
+                                                    <TextBlock Text="{Binding Quantity}" FontWeight="Bold" FontSize="12"
+                                                               HorizontalAlignment="Center" VerticalAlignment="Center" />
+                                                </Border>
+
+                                                <Button Classes="win7-button"
+                                                        Command="{Binding $parent[UserControl].((vm:RegisterViewModel)DataContext).IncrementQuantityCommand}"
+                                                        CommandParameter="{Binding}"
+                                                        Content="+" Width="26" Height="26" Padding="0"
+                                                        HorizontalContentAlignment="Center" VerticalContentAlignment="Center" />
+                                            </StackPanel>
+
+                                            <!-- Line Total -->
+                                            <TextBlock Grid.Column="2" Text="{Binding FormattedLineTotal}"
+                                                       FontWeight="Bold" FontSize="13" Foreground="#1A334D"
+                                                       VerticalAlignment="Center" Width="60" TextAlignment="Right" Margin="4,0,8,0" />
+
+                                            <!-- Remove Item -->
+                                            <Button Classes="win7-button-danger" Grid.Column="3"
+                                                    Command="{Binding $parent[UserControl].((vm:RegisterViewModel)DataContext).RemoveFromCartCommand}"
+                                                    CommandParameter="{Binding}"
+                                                    Content="✕" Width="24" Height="24" Padding="0"
+                                                    HorizontalContentAlignment="Center" VerticalContentAlignment="Center" />
+                                        </Grid>
+                                    </Border>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </ScrollViewer>
+
+                    <!-- Cart Summary & Calculation -->
+                    <Border Grid.Row="3" Background="#F1F6FB" BorderBrush="#BED4E6" BorderThickness="0,1,0,1" Padding="12,8">
+                        <StackPanel Spacing="5">
+                            <!-- Subtotal -->
+                            <Grid ColumnDefinitions="*,Auto">
+                                <TextBlock Text="Subtotal:" FontSize="12" Foreground="#44627E" />
+                                <TextBlock Grid.Column="1" Text="{Binding Subtotal, StringFormat='${0:F2}'}"
+                                           FontWeight="SemiBold" FontSize="13" />
+                            </Grid>
+
+                            <!-- Discount Buttons & Display -->
+                            <Grid ColumnDefinitions="*,Auto">
+                                <StackPanel Orientation="Horizontal" Spacing="4">
+                                    <TextBlock Text="Discount:" FontSize="12" Foreground="#44627E" VerticalAlignment="Center" />
+                                    <Button Classes="win7-button" Content="5%" Padding="4,1" FontSize="10"
+                                            Command="{Binding ApplyDiscountCommand}" CommandParameter="5" />
+                                    <Button Classes="win7-button" Content="10%" Padding="4,1" FontSize="10"
+                                            Command="{Binding ApplyDiscountCommand}" CommandParameter="10" />
+                                    <Button Classes="win7-button" Content="None" Padding="4,1" FontSize="10"
+                                            Command="{Binding ApplyDiscountCommand}" CommandParameter="0" />
+                                </StackPanel>
+                                <TextBlock Grid.Column="1" Text="{Binding Discount, StringFormat='-${0:F2}'}"
+                                           FontWeight="SemiBold" FontSize="12" Foreground="#B02525" />
+                            </Grid>
+
+                            <!-- Loyalty Points Discount -->
+                            <Grid ColumnDefinitions="*,Auto" IsVisible="{Binding PointsDiscount, Converter={x:Static ObjectConverters.IsNotNull}}">
+                                <TextBlock Text="⭐ Points Reward Discount:" FontSize="12" Foreground="#1E6B34" FontWeight="SemiBold" />
+                                <TextBlock Grid.Column="1" Text="{Binding PointsDiscount, StringFormat='-${0:F2}'}"
+                                           FontWeight="Bold" FontSize="12" Foreground="#1E6B34" />
+                            </Grid>
+
+                            <!-- Tax -->
+                            <Grid ColumnDefinitions="*,Auto">
+                                <TextBlock Text="{Binding TaxLabel}" FontSize="12" Foreground="#44627E" />
+                                <TextBlock Grid.Column="1" Text="{Binding Tax, StringFormat='${0:F2}'}"
+                                           FontWeight="SemiBold" FontSize="12" />
+                            </Grid>
+
+                            <Separator Background="#C3D9EB" Height="1" />
+
+                            <!-- Grand Total Box (Digital Register Style) -->
+                            <Border Background="#0C2612" CornerRadius="4" Padding="10,6" BorderBrush="#258238" BorderThickness="1.5">
+                                <Grid ColumnDefinitions="*,Auto">
+                                    <StackPanel VerticalAlignment="Center">
+                                        <TextBlock Text="TOTAL DUE:" FontSize="14" FontWeight="Bold" Foreground="#8CECA1" />
+                                        <TextBlock Text="{Binding EstimatedPointsToEarn, StringFormat='+ {0} pts to be earned'}"
+                                                   FontSize="10" Foreground="#8CECA1" IsVisible="{Binding HasAttachedCustomer}" />
+                                    </StackPanel>
+                                    <TextBlock Grid.Column="1" Text="{Binding Total, StringFormat='${0:F2}'}"
+                                               FontSize="24" FontWeight="ExtraBold" Foreground="#39E65E" VerticalAlignment="Center" />
+                                </Grid>
+                            </Border>
+                        </StackPanel>
+                    </Border>
+
+                    <!-- Payment Section -->
+                    <Border Grid.Row="4" Background="#E8F1F8" Padding="12,10">
+                        <StackPanel Spacing="8">
+                            <!-- Payment Method Selector -->
+                            <Grid ColumnDefinitions="*,*,*">
+                                <Button Classes="win7-button" Grid.Column="0" Content="Cash" Margin="0,0,3,0"
+                                        HorizontalContentAlignment="Stretch"
+                                        Command="{Binding SetPaymentMethodCommand}" CommandParameter="Cash" />
+                                <Button Classes="win7-button" Grid.Column="1" Content="Card" Margin="3,0,3,0"
+                                        HorizontalContentAlignment="Center"
+                                        Command="{Binding SetPaymentMethodCommand}" CommandParameter="Card" />
+                                <Button Classes="win7-button" Grid.Column="2" Content="Mobile" Margin="3,0,0,0"
+                                        HorizontalContentAlignment="Center"
+                                        Command="{Binding SetPaymentMethodCommand}" CommandParameter="Mobile" />
+                            </Grid>
+
+                            <!-- Quick Cash Tender Buttons -->
+                            
+
+                            <!-- Cash Tendered & Change Due -->
+                            <Grid ColumnDefinitions="*,*">
+                                <StackPanel Grid.Column="0" Margin="0,0,4,0">
+                                    <TextBlock Text="Tendered ($):" FontSize="11" FontWeight="SemiBold" Foreground="#32506D" />
+                                    <TextBox Classes="win7-input"
+                                             Text="{Binding TenderedAmount}"
+                                             FontSize="15" FontWeight="Bold" Height="32" />
+                                </StackPanel>
+                                <StackPanel Grid.Column="1" Margin="4,0,0,0">
+                                    <TextBlock Text="Change Due:" FontSize="11" FontWeight="SemiBold" Foreground="#32506D" />
+                                    <Border Background="#E6F4EA" BorderBrush="#83C293" BorderThickness="1" CornerRadius="2" Height="32" Padding="6,2">
+                                        <TextBlock Text="{Binding ChangeDue, StringFormat='${0:F2}'}"
+                                                   FontSize="16" FontWeight="ExtraBold" Foreground="#126827"
+                                                   VerticalAlignment="Center" />
+                                    </Border>
+                                </StackPanel>
+                            </Grid>
+
+                            <!-- Checkout Error Notification -->
+                            <Border Background="#FFEEEE" BorderBrush="#DD6666" BorderThickness="1" CornerRadius="3"
+                                    Padding="6,4" IsVisible="{Binding HasCheckoutError}">
+                                <TextBlock Text="{Binding CheckoutError}" Foreground="#AA1111" FontWeight="SemiBold" FontSize="11" TextWrapping="Wrap" />
+                            </Border>
+
+                            <!-- Process Sale Button -->
+                            <Button Classes="win7-button-primary"
+                                    Command="{Binding ProcessCheckoutCommand}"
+                                    Height="46"
+                                    HorizontalAlignment="Stretch"
+                                    HorizontalContentAlignment="Center"
+                                    VerticalContentAlignment="Center">
+                                <StackPanel Orientation="Horizontal" Spacing="8">
+                                    <TextBlock Text="✔" FontSize="18" Foreground="#FFFFFF" VerticalAlignment="Center" />
+                                    <TextBlock Text="COMPLETE SALE &amp; PRINT RECEIPT"
+                                               FontSize="14" FontWeight="Bold" Foreground="#FFFFFF" VerticalAlignment="Center" />
+                                </StackPanel>
+                            </Button>
+                        </StackPanel>
+                    </Border>
+
+                </Grid>
+            </Border>
+        </Grid>
+
+        <!-- DELETE WARNING MODAL: CLEAR CART CONFIRMATION -->
+        <Border IsVisible="{Binding IsClearCartModalOpen}"
+                Background="#88000000" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
+            <Border Width="420" Background="#FFFFFF" CornerRadius="8"
+                    BorderBrush="#C43B3B" BorderThickness="2"
+                    HorizontalAlignment="Center" VerticalAlignment="Center"
+                    BoxShadow="0 10 30 0 #A0000000" Padding="20">
+                <StackPanel Spacing="14">
+                    <Grid ColumnDefinitions="Auto,*">
+                        <Border Width="42" Height="42" CornerRadius="21" Background="#FFF2D6" BorderBrush="#F0A624" BorderThickness="2" VerticalAlignment="Top">
+                            <TextBlock Text="⚠️" FontSize="22" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                        </Border>
+                        <StackPanel Grid.Column="1" Margin="12,0,0,0">
+                            <TextBlock Text="Confirm Clear Cart" FontSize="16" FontWeight="Bold" Foreground="#8B1818" />
+                            <TextBlock Text="Are you sure you want to clear all items from the current customer cart? Any entered quantities and loyalty attachments will be reset."
+                                       FontSize="12" Foreground="#444444" TextWrapping="Wrap" Margin="0,4,0,0" />
+                        </StackPanel>
+                    </Grid>
+
+                    <Separator Background="#E0E0E0" Height="1" />
+
+                    <Grid ColumnDefinitions="*,*">
+                        <Button Classes="win7-button-danger" Grid.Column="0"
+                                Command="{Binding ConfirmClearCartCommand}"
+                                Content="Yes, Clear Cart" Height="36"
+                                HorizontalContentAlignment="Center" Margin="0,0,6,0" />
+                        <Button Classes="win7-button" Grid.Column="1"
+                                Command="{Binding CancelClearCartCommand}"
+                                Content="Cancel" Height="36"
+                                HorizontalContentAlignment="Center" Margin="6,0,0,0" />
+                    </Grid>
+                </StackPanel>
+            </Border>
+        </Border>
+
+        <!-- RECEIPT PRINT PREVIEW MODAL / OVERLAY -->
+        <Border IsVisible="{Binding IsReceiptModalOpen}"
+                Background="#88000000" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
+            <Border Width="450" MaxHeight="670" Background="#FFFFFF" CornerRadius="8"
+                    BorderBrush="#2B6B9C" BorderThickness="2"
+                    HorizontalAlignment="Center" VerticalAlignment="Center"
+                    BoxShadow="0 10 30 0 #A0000000" Padding="16">
+                <Grid RowDefinitions="Auto,*,Auto,Auto">
+
+                    <!-- Receipt Modal Header -->
+                    <Grid Grid.Row="0" ColumnDefinitions="*,Auto" Margin="0,0,0,8">
+                        <StackPanel Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
+                            <TextBlock Text="🖨️ Receipt Print Preview" FontSize="16" FontWeight="Bold" Foreground="#1A4064" />
+                        </StackPanel>
+                        <Button Classes="win7-button-danger" Grid.Column="1"
+                                Command="{Binding CloseReceiptModalCommand}"
+                                Content="✕" Width="26" Height="26" Padding="0"
+                                HorizontalContentAlignment="Center" VerticalContentAlignment="Center" />
+                    </Grid>
+
+                    <!-- Receipt Paper Slip Display -->
+                    <Border Grid.Row="1" Background="#FFFDF7" BorderBrush="#DCD6C8" BorderThickness="1" CornerRadius="4" Padding="12" Margin="0,4,0,8">
+                        <ScrollViewer VerticalScrollBarVisibility="Auto">
+                            <TextBlock Text="{Binding ReceiptText}"
+                                       FontFamily="Consolas, Courier New, monospace"
+                                       FontSize="11.5"
+                                       Foreground="#222222"
+                                       LineHeight="16" />
+                        </ScrollViewer>
+                    </Border>
+
+                    <!-- Status Notification -->
+                    <TextBlock Grid.Row="2" Text="{Binding ReceiptStatusMessage}"
+                               FontSize="11" Foreground="#1E6B34" FontWeight="SemiBold"
+                               TextWrapping="Wrap" Margin="0,0,0,8" HorizontalAlignment="Center" />
+
+                    <!-- Action Buttons -->
+                    <Grid Grid.Row="3" ColumnDefinitions="*,*,*">
+                        <Button Classes="win7-button-primary" Grid.Column="0"
+                                Command="{Binding PrintReceiptCommand}"
+                                Content="🖨️ Print Receipt" Margin="0,0,4,0"
+                                HorizontalContentAlignment="Center" />
+                        <Button Classes="win7-button" Grid.Column="1"
+                                Command="{Binding SaveReceiptFileCommand}"
+                                Content="💾 Save File" Margin="2,0,2,0"
+                                HorizontalContentAlignment="Center" />
+                        <Button Classes="win7-button" Grid.Column="2"
+                                Command="{Binding CloseReceiptModalCommand}"
+                                Content="Next Sale ➔" Margin="4,0,0,0"
+                                HorizontalContentAlignment="Center" />
+                    </Grid>
+                </Grid>
+            </Border>
+        </Border>
+
+    </Grid>
+</UserControl>
